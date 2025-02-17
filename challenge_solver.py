@@ -3,9 +3,14 @@ import json
 import hashlib
 import logging
 import sys
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
+
+# Delete existing nonce.json file if it exists
+if os.path.exists("auth.json"):
+    os.remove("auth.json")
 
 class ResponseError(Exception):
     def __init__(self, status_code, error, message):
@@ -77,8 +82,8 @@ if __name__ == "__main__":
         nonce = solve_challenge(prefix, target)
         print(f"Solved nonce: {nonce}")
         
-        # Output to nonce.json
-        with open("nonce.json", "w") as f:
-            json.dump({"nonce": nonce}, f)
+        # Output to auth.json
+        with open("auth.json", "w") as f:
+            json.dump({"nonce": nonce, "prefix": prefix}, f)
     except ResponseError as e:
         print(f"Error: {e}")

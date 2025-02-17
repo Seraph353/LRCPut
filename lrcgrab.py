@@ -59,9 +59,11 @@ def submit_file():
 
     return track_name, artist_name, album_name, duration, plain_lyrics, synced_lyrics
 
-def forward_to_lrcrel():
+def forward_to_lrcpub():
     track_name, artist_name, album_name, duration, plain_lyrics, synced_lyrics = submit_file()
-    subprocess.run(["python", "lrcrel.py", track_name, artist_name, album_name, str(duration), plain_lyrics, synced_lyrics])
+    subprocess.run(["python", "lrcpub.py", track_name, artist_name, album_name, str(duration), plain_lyrics, synced_lyrics])
+    forward_button.config(state=tk.DISABLED)
+    guidance_label.config(text="Please get a new key to enable submissions.", fg="red")
 
 def get_key():
     try:
@@ -73,15 +75,15 @@ def get_key():
             raise Exception("Empty response from get_challenge.py")
         
         challenge_response = json.loads(result.stdout)
-        prefix = challenge_response["prefix"]
-        target = challenge_response["target"]
         
         result = subprocess.run(["python", "challenge_solver.py", json.dumps(challenge_response)], capture_output=True, text=True)
         if result.returncode != 0:
             raise Exception(result.stderr)
         
-        nonce = result.stdout.strip()
-        messagebox.showinfo("Nonce", f"Solved nonce: {nonce}")
+        # Do not try to grab the auth, just notify the user
+        messagebox.showinfo("Info", "Challenge solved. Please check auth.json for the nonce.")
+        forward_button.config(state=tk.NORMAL)
+        guidance_label.config(text="")
     except json.JSONDecodeError:
         messagebox.showerror("Error", "Invalid JSON response from get_challenge.py")
     except Exception as e:
@@ -101,13 +103,16 @@ path_entry.pack(pady=10)
 browse_button = tk.Button(root, text="Browse", command=browse_file)
 browse_button.pack(pady=5)
 
-submit_button = tk.Button(root, text="Submit LRC File", command=submit_file)
+submit_button = tk.Button(root, text="Check LRC result", command=submit_file)
 submit_button.pack(pady=20)
 
-forward_button = tk.Button(root, text="Forward to lrcrel.py", command=forward_to_lrcrel)
+forward_button = tk.Button(root, text="Submit to LRCLIB", command=forward_to_lrcpub)
 forward_button.pack(pady=20)
 
-get_key_button = tk.Button(root, text="Get Key", command=get_key)
+guidance_label = tk.Label(root, text="")
+guidance_label.pack()
+
+get_key_button = tk.Button(root, text="Get LRCLIB Key", command=get_key)
 get_key_button.pack(pady=5)
 
 root.mainloop()

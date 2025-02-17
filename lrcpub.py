@@ -2,11 +2,12 @@ import sys
 import requests
 from requests.exceptions import ConnectionError
 import time
+import json
 
 def get_publish_token():
-    # Implement the logic to obtain the publish token
-    # This is a placeholder function
-    return "prefix:nonce"
+    with open('auth.json', 'r') as f:
+        auth_data = json.load(f)
+    return f"{auth_data['prefix']}:{auth_data['nonce']}"
 
 def main():
     if len(sys.argv) != 7:
