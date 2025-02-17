@@ -5,6 +5,7 @@ import eyed3
 from mutagen.flac import FLAC
 import re
 import subprocess
+import json
 
 def browse_file():
     lrc_file_path = filedialog.askopenfilename(filetypes=[("LRC files", "*.lrc")])
@@ -62,6 +63,30 @@ def forward_to_lrcrel():
     track_name, artist_name, album_name, duration, plain_lyrics, synced_lyrics = submit_file()
     subprocess.run(["python", "lrcrel.py", track_name, artist_name, album_name, str(duration), plain_lyrics, synced_lyrics])
 
+def get_key():
+    try:
+        result = subprocess.run(["python", "get_challenge.py"], capture_output=True, text=True)
+        if result.returncode != 0:
+            raise Exception(result.stderr)
+        
+        if not result.stdout.strip():
+            raise Exception("Empty response from get_challenge.py")
+        
+        challenge_response = json.loads(result.stdout)
+        prefix = challenge_response["prefix"]
+        target = challenge_response["target"]
+        
+        result = subprocess.run(["python", "challenge_solver.py", json.dumps(challenge_response)], capture_output=True, text=True)
+        if result.returncode != 0:
+            raise Exception(result.stderr)
+        
+        nonce = result.stdout.strip()
+        messagebox.showinfo("Nonce", f"Solved nonce: {nonce}")
+    except json.JSONDecodeError:
+        messagebox.showerror("Error", "Invalid JSON response from get_challenge.py")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to get key: {e}")
+
 root = tk.Tk()
 root.title("LRC Metadata Extractor")
 
@@ -76,5 +101,8 @@ submit_button.pack(pady=20)
 
 forward_button = tk.Button(root, text="Forward to lrcrel.py", command=forward_to_lrcrel)
 forward_button.pack(pady=20)
+
+get_key_button = tk.Button(root, text="Get Key", command=get_key)
+get_key_button.pack(pady=5)
 
 root.mainloop()

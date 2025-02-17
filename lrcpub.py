@@ -1,46 +1,54 @@
-import os
-import eyed3
+import sys
+import requests
+from requests.exceptions import ConnectionError
+import time
 
-def get_mp3_info(mp3_path):
-    audiofile = eyed3.load(mp3_path)
-    if audiofile is None:
-        return None
-    info = {
-        "track_name": audiofile.tag.title,
-        "album_name": audiofile.tag.album,
-        "artist_name": audiofile.tag.artist,
-        "duration": audiofile.info.time_secs
-    }
-    return info
+def get_publish_token():
+    # Implement the logic to obtain the publish token
+    # This is a placeholder function
+    return "prefix:nonce"
 
 def main():
-    lrc_file = input("Please submit an LRC file: ")
-    if not os.path.isfile(lrc_file):
-        print("LRC file not found.")
+    if len(sys.argv) != 7:
+        print("Usage: lrcrel.py <trackName> <artistName> <albumName> <duration> <plainLyrics> <syncedLyrics>")
         return
 
-    mp3_file = os.path.splitext(lrc_file)[0] + ".mp3"
-    if not os.path.isfile(mp3_file):
-        print("MP3 file not found.")
-        return
+    track_name = sys.argv[1]
+    artist_name = sys.argv[2]
+    album_name = sys.argv[3]
+    duration = float(sys.argv[4])
+    plain_lyrics = sys.argv[5]
+    synced_lyrics = sys.argv[6]
 
-    mp3_info = get_mp3_info(mp3_file)
-    if mp3_info is None:
-        print("Failed to retrieve MP3 information.")
-        return
+    publish_token = get_publish_token()
+    headers = {
+        "X-Publish-Token": publish_token
+    }
+    data = {
+        "trackName": track_name,
+        "artistName": artist_name,
+        "albumName": album_name,
+        "duration": duration,
+        "plainLyrics": plain_lyrics,
+        "syncedLyrics": synced_lyrics
+    }
 
-    print("Track Information:")
-    print(f"Track Name: {mp3_info['track_name']}")
-    print(f"Album Name: {mp3_info['album_name']}")
-    print(f"Artist Name: {mp3_info['artist_name']}")
-    print(f"Duration: {mp3_info['duration']} seconds")
-
-    lrc_type = input("Is the LRC file plain or synced? (plain/synced): ")
-    if lrc_type not in ["plain", "synced"]:
-        print("Invalid input. Please enter 'plain' or 'synced'.")
-        return
-
-    print(f"LRC file is {lrc_type}.")
+    url = "https://lrclib.net/api/publish"
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            if response.status_code == 200:
+                print("Lyrics uploaded successfully.")
+                break
+            else:
+                print(f"Failed to upload lyrics. Status code: {response.status_code}, Response: {response.text}")
+                break
+        except ConnectionError as e:
+            print(f"Connection error: {e}. Retrying ({attempt + 1}/{max_retries})...")
+            time.sleep(2)
+    else:
+        print("Failed to upload lyrics after multiple attempts.")
 
 if __name__ == "__main__":
     main()
