@@ -87,8 +87,13 @@ def get_key():
     except Exception as e:
         messagebox.showerror("Error", f"Failed to get key: {e}")
 
+def close_app(event):
+    root.destroy()
+
 root = tk.Tk()
 root.title("LRC Metadata Extractor")
+
+root.bind('<Escape>', close_app)
 
 path_entry = tk.Entry(root, width=50)
 path_entry.pack(pady=10)
