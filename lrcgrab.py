@@ -46,8 +46,12 @@ def submit_file():
     with open(lrc_file_path, 'r', encoding='utf-8') as lrc_file:
         lrc_content = lrc_file.read()
         timestamp_pattern = re.compile(r'\[\d{2}:\d{2}.\d{2}\]')
-        synced_lyrics = "true" if timestamp_pattern.search(lrc_content) else "false"
-        plain_lyrics = "true" if synced_lyrics == "false" else "false"
+        if timestamp_pattern.search(lrc_content):
+            synced_lyrics = lrc_content
+            plain_lyrics = None
+        else:
+            plain_lyrics = lrc_content
+            synced_lyrics = None
 
     messagebox.showinfo("Track Information", 
                         f"Track Name: {track_name}\n"
@@ -60,32 +64,22 @@ def submit_file():
     return track_name, artist_name, album_name, duration, plain_lyrics, synced_lyrics
 
 def forward_to_lrcpub():
-    track_name, artist_name, album_name, duration, plain_lyrics, synced_lyrics = submit_file()
-    subprocess.run(["python", "lrcpub.py", track_name, artist_name, album_name, str(duration), plain_lyrics, synced_lyrics])
-    forward_button.config(state=tk.DISABLED)
-    guidance_label.config(text="Please get a new key to enable submissions.", fg="red")
+    result = submit_file()
+    if result:
+        track_name, artist_name, album_name, duration, plain_lyrics, synced_lyrics = result
+        plain_lyrics = plain_lyrics if plain_lyrics is not None else ""
+        synced_lyrics = synced_lyrics if synced_lyrics is not None else ""
+        subprocess.run(["python", "lrcpub.py", track_name, artist_name, album_name, str(duration), plain_lyrics, synced_lyrics])
+        forward_button.config(state=tk.DISABLED)
+        guidance_label.config(text="Please get a new key to enable submissions.", fg="red")
 
 def get_key():
     try:
-        result = subprocess.run(["python", "get_challenge.py"], capture_output=True, text=True)
-        if result.returncode != 0:
-            raise Exception(result.stderr)
-        
-        if not result.stdout.strip():
-            raise Exception("Empty response from get_challenge.py")
-        
-        challenge_response = json.loads(result.stdout)
-        
-        result = subprocess.run(["python", "challenge_solver.py", json.dumps(challenge_response)], capture_output=True, text=True)
-        if result.returncode != 0:
-            raise Exception(result.stderr)
-        
+        subprocess.run(["python", "get_challenge.py"])
         # Do not try to grab the auth, just notify the user
-        messagebox.showinfo("Info", "Challenge solved. Please check auth.json for the nonce.")
+        messagebox.showinfo("Info", "Challenge solved. Please use the new key to submit within 5 minutes.")
         forward_button.config(state=tk.NORMAL)
         guidance_label.config(text="")
-    except json.JSONDecodeError:
-        messagebox.showerror("Error", "Invalid JSON response from get_challenge.py")
     except Exception as e:
         messagebox.showerror("Error", f"Failed to get key: {e}")
 
