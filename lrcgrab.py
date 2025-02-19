@@ -87,13 +87,13 @@ def forward_to_lrcpub():
         track_name, artist_name, album_name, duration, plain_lyrics, synced_lyrics = result
         plain_lyrics = plain_lyrics if plain_lyrics is not None else ""
         synced_lyrics = synced_lyrics if synced_lyrics is not None else ""
-        subprocess.run(["python", "lrcpub.py", track_name, artist_name, album_name, str(duration), plain_lyrics, synced_lyrics])
+        subprocess.run(["python", "scripts/lrcpub.py", track_name, artist_name, album_name, str(duration), plain_lyrics, synced_lyrics])
         forward_button.config(state=tk.DISABLED)
         guidance_label.config(text="Please get a new key to enable submissions.", fg="red")
 
 def get_key():
     try:
-        subprocess.run(["python", "get_challenge.py"])
+        subprocess.run(["python", "scripts/get_challenge.py"])
         # Do not try to grab the auth, just notify the user
         messagebox.showinfo("Info", "Challenge solved. Please use the new key to submit within 5 minutes.")
         forward_button.config(state=tk.NORMAL)
