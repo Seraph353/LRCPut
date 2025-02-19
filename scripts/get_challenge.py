@@ -12,6 +12,6 @@ if response.status_code == 200:
     print(challenge_response)
     
     # Run challenge_solver with the challenge_response as an argument
-    subprocess.run(["python", "challenge_solver.py", json.dumps(challenge_response)])
+    subprocess.run(["python", "scripts/challenge_solver.py", json.dumps(challenge_response)])
 else:
     print(f"Request failed with status code {response.status_code}")
