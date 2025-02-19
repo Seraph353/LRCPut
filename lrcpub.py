@@ -39,7 +39,7 @@ def main():
     for attempt in range(max_retries):
         try:
             response = requests.post(url, headers=headers, json=data)
-            if response.status_code == 200:
+            if response.status_code == 201:
                 print("Lyrics uploaded successfully.")
                 break
             else:
