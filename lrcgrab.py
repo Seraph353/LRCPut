@@ -48,18 +48,36 @@ def submit_file():
         timestamp_pattern = re.compile(r'\[\d{2}:\d{2}.\d{2}\]')
         if timestamp_pattern.search(lrc_content):
             synced_lyrics = lrc_content
-            plain_lyrics = None
+            plain_lyrics = re.sub(r'\[\d{2}:\d{2}.\d{2}\]', '', lrc_content).strip()
         else:
             plain_lyrics = lrc_content
             synced_lyrics = None
 
-    messagebox.showinfo("Track Information", 
-                        f"Track Name: {track_name}\n"
-                        f"Artist Name: {artist_name}\n"
-                        f"Album Name: {album_name}\n"
-                        f"Duration: {duration}\n"
-                        f"Plain Lyrics: {plain_lyrics}\n"
-                        f"Synced Lyrics: {synced_lyrics}")
+    global info_window
+    info_window = tk.Toplevel(root)
+    info_window.title("Track Information")
+    text_widget = tk.Text(info_window, wrap='word')
+    text_widget.insert(tk.END, 
+                       f"Track Name: {track_name}\n"
+                       f"Artist Name: {artist_name}\n"
+                       f"Album Name: {album_name}\n"
+                       f"Duration: {duration}\n"
+                       f"Plain Lyrics: {plain_lyrics}\n"
+                       f"Synced Lyrics: {synced_lyrics}")
+    text_widget.config(state=tk.DISABLED)
+    text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    scrollbar = tk.Scrollbar(info_window, command=text_widget.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    text_widget.config(yscrollcommand=scrollbar.set)
+
+    # Print API request details to console
+    print("API Request Details:")
+    print(f"Track Name: {track_name}")
+    print(f"Artist Name: {artist_name}")
+    print(f"Album Name: {album_name}")
+    print(f"Duration: {duration}")
+    print(f"Plain Lyrics: {plain_lyrics}")
+    print(f"Synced Lyrics: {synced_lyrics}")
 
     return track_name, artist_name, album_name, duration, plain_lyrics, synced_lyrics
 
@@ -84,7 +102,10 @@ def get_key():
         messagebox.showerror("Error", f"Failed to get key: {e}")
 
 def close_app(event):
-    root.destroy()
+    if info_window is not None and info_window.winfo_exists():
+        info_window.destroy()
+    else:
+        root.destroy()
 
 root = tk.Tk()
 root.title("LRC Metadata Extractor")
@@ -94,7 +115,7 @@ root.bind('<Escape>', close_app)
 path_entry = tk.Entry(root, width=50)
 path_entry.pack(pady=10)
 
-browse_button = tk.Button(root, text="Browse", command=browse_file)
+browse_button = tk.Button(root, text="Browse for file", command=browse_file)
 browse_button.pack(pady=5)
 
 submit_button = tk.Button(root, text="Check LRC result", command=submit_file)
@@ -102,11 +123,14 @@ submit_button.pack(pady=20)
 
 forward_button = tk.Button(root, text="Submit to LRCLIB", command=forward_to_lrcpub)
 forward_button.pack(pady=20)
-
-guidance_label = tk.Label(root, text="")
+forward_button.config(state=tk.DISABLED)
+guidance_label = tk.Label(root, text="Please get a new key to enable submissions.", fg="red")
 guidance_label.pack()
 
 get_key_button = tk.Button(root, text="Get LRCLIB Key", command=get_key)
 get_key_button.pack(pady=5)
+
+# Initialize info_window as None
+info_window = None
 
 root.mainloop()
