@@ -5,7 +5,7 @@ import eyed3
 from mutagen.flac import FLAC
 import re
 import subprocess
-import json
+
 
 def browse_file():
     lrc_file_path = filedialog.askopenfilename(filetypes=[("LRC files", "*.lrc")])
@@ -29,7 +29,7 @@ def submit_file():
             track_name = audio_file.tag.title
             album_name = audio_file.tag.album
             artist_name = audio_file.tag.artist
-            duration = audio_file.info.time_secs
+            duration = round(audio_file.info.time_secs, 2)
         else:
             messagebox.showerror("Error", "Failed to load MP3 metadata.")
             return
@@ -38,7 +38,7 @@ def submit_file():
         track_name = audio_file.get("title", ["Unknown"])[0]
         album_name = audio_file.get("album", ["Unknown"])[0]
         artist_name = audio_file.get("artist", ["Unknown"])[0]
-        duration = audio_file.info.length
+        duration = round(audio_file.info.length, 2)
     else:
         messagebox.showerror("Error", "No corresponding MP3 or FLAC file found.")
         return
