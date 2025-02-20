@@ -1,4 +1,3 @@
-import requests
 import json
 import hashlib
 import logging
@@ -12,6 +11,7 @@ logging.basicConfig(level=logging.DEBUG)
 if os.path.exists("auth.json"):
     os.remove("auth.json")
 
+# Give an error if something goes wrong
 class ResponseError(Exception):
     def __init__(self, status_code, error, message):
         self.status_code = status_code
@@ -19,28 +19,7 @@ class ResponseError(Exception):
         self.message = message
         super().__init__(f"{error}: {message}")
 
-def request_challenge(lrclib_instance):
-    version = "1.0.0"  # Replace with your actual version
-    user_agent = f"LRCGET v{version} (https://github.com/tranxuanthang/lrcget)"
-    api_endpoint = f"{lrclib_instance.rstrip('/')}/api/request-challenge"
-
-    headers = {
-        "User-Agent": user_agent
-    }
-
-    response = requests.post(api_endpoint, headers=headers, timeout=10, allow_redirects=True)
-
-    if response.status_code == 200:
-        return response.json()
-    elif response.status_code in [400, 503, 500]:
-        error_response = response.json()
-        raise ResponseError(response.status_code, error_response["error"], error_response["message"])
-    else:
-        logging.debug(f"Unexpected status code: {response.status_code}")
-        logging.debug(f"Response content: {response.content}")
-        raise ResponseError(None, "UnknownError", "Unknown error happened")
-
-
+# Checks that the solved challenge complies with the target
 def verify_nonce(result, target):
     if len(result) != len(target):
         return False
@@ -68,11 +47,8 @@ def solve_challenge(prefix, target_hex):
 
     return str(nonce)
 
-# Example usage
+
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python challenge_solver.py <challenge_response>")
-        sys.exit(1)
     
     challenge_response = json.loads(sys.argv[1])
     prefix = challenge_response["prefix"]
