@@ -23,7 +23,8 @@ def main():
 
     publish_token = get_publish_token()
     headers = {
-        "X-Publish-Token": publish_token
+        "X-Publish-Token": publish_token,
+        "User-Agent": "LRCPUT v0.1 (https://github.com/Seraph353/LRCPut)"
     }
     data = {
         "trackName": track_name,

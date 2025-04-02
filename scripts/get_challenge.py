@@ -4,7 +4,11 @@ import json
 
 url = "https://lrclib.net/api/request-challenge"
 
-response = requests.post(url)
+headers = {
+    "User-Agent": "LRCPUT v0.1 (https://github.com/Seraph353/LRCPut)"
+}
+
+response = requests.post(url, headers=headers)
 
 if response.status_code == 200:
     print("Request successful")
