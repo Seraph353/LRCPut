@@ -51,7 +51,7 @@ def submit_file():
             plain_lyrics = re.sub(r'\[\d{2}:\d{2}.\d{2}\]', '', lrc_content).strip()
         else:
             plain_lyrics = lrc_content
-            synced_lyrics = None
+            synced_lyrics = ""
 
     global info_window
     info_window = tk.Toplevel(root)
@@ -62,8 +62,9 @@ def submit_file():
                        f"Artist Name: {artist_name}\n"
                        f"Album Name: {album_name}\n"
                        f"Duration: {duration}\n"
-                       f"Plain Lyrics: {plain_lyrics}\n"
-                       f"Synced Lyrics: {synced_lyrics}")
+                       f"Plain Lyrics: {plain_lyrics}\n")
+    if synced_lyrics:
+        text_widget.insert(tk.END, f"Synced Lyrics: {synced_lyrics}")
     text_widget.config(state=tk.DISABLED)
     text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
     scrollbar = tk.Scrollbar(info_window, command=text_widget.yview)
